@@ -1,57 +1,92 @@
-# FIFA 22: análisis de jugadores y predicción salarial
+# FIFA 22: estimación de la valoración de jugadores
 
-Proyecto de **Hector Americo Torres Huamani** · Python y análisis de datos.
+**Autor:** Hector Americo Torres Huamani · [Repositorio](https://github.com/hectortorres26/fifa22-analisis-jugadores) · [Cuaderno ejecutado](analisis_jugadores_fifa22.ipynb)
 
-[Ver cuaderno](analisis_jugadores_fifa22.ipynb) · [Abrir original en Colab](https://colab.research.google.com/drive/1ebBipDym9RX9dy4CNa8l929a0DjAVyEY) · [Portafolio](https://www.datascienceportfol.io/hectortorres26/projects/2)
+Estimar `value_eur`, la valoración asignada a los jugadores dentro de FIFA 22, a partir de doce atributos deportivos y físicos. El alcance es la estructura de valoración del videojuego; no el salario (`wage_eur`) ni el precio de un traspaso real.
 
-## Objetivo y contenido
+![Resultados del análisis](reports/evaluacion.png)
 
-Explorar atributos de jugadores de FIFA 22, su valoración y sus salarios mediante análisis descriptivo y regresión lineal.
+## Resultados verificados
 
-**Alcance real del modelo:** el título original habla del precio del jugador, pero el código entrena con `y = data_imputed['wage_eur']`. Por tanto, las métricas guardadas corresponden al salario y no a la valoración `value_eur` ni a un precio real de transferencia.
+| Métrica en prueba (3.833 jugadores) | Gradient boosting | Referencia por mediana |
+|---|---:|---:|
+| MAE | 152.336 EUR | 2.337.478 EUR |
+| RMSE | 1.259.772 EUR | 8.131.754 EUR |
+| R² | 0,9747 | −0,0557 |
 
-### Trabajo incluido
+Reducción del MAE frente a la referencia: **93,48 %**. MAE de validación cruzada: **148.460 EUR** (desviación entre particiones: 23.816 EUR). Intervalo bootstrap del 95 % del MAE de prueba: **120.983–194.366 EUR**.
 
-Eliminación de columnas, revisión de valores faltantes, histogramas y diagramas de dispersión, comparaciones entre clubes y jugadores, imputación por media, selección de variables mediante RFECV y regresión lineal.
+El modelo reproduce bien la estructura de valoración del juego. La diferencia entre RMSE y MAE muestra errores grandes en algunos jugadores: para los 100 jugadores de prueba valorados en más de 20 millones de EUR, el MAE es de 2,93 millones. `overall`, `potential` y `age` destacan en la importancia por permutación, consistente con una valoración del videojuego fuertemente vinculada a esos atributos. Esto no demuestra capacidad para valorar fichajes reales.
 
-### Datos
+Las cifras proceden de [reports/metrics.json](reports/metrics.json). El cuaderno regenera tablas y figuras desde los datos; no introduce métricas manualmente en el código.
 
-Archivo esperado: `players_22.csv`. El cuaderno lo carga desde Google Drive. La fuente exacta de descarga y su licencia no están documentadas en el cuaderno; deben verificarse antes de redistribuir el archivo.
+## Herramientas y metodología
 
-### Resultados históricos guardados
+Python, pandas, NumPy y Matplotlib, con pruebas `unittest` y cuadernos ejecutados mediante nbclient. Scikit-learn aporta los pipelines, los modelos y la validación.
 
-- R²: **0,5889**.
-- Error cuadrático medio: **149 700 747,52**, en unidades de salario al cuadrado.
+1. Validar unicidad de `sofifa_id`, esquema y valores numéricos. De 19.239 filas, excluir 74 sin valoración válida y positiva; nunca imputar la variable objetivo. Quedan 19.165 jugadores.
+2. Utilizar doce atributos predefinidos; excluir identificadores, nombres, salario, cláusula de rescisión y la propia valoración de los predictores.
+3. Reservar el 20 % como prueba aleatoria con semilla 42. Ajustar imputación por mediana e indicadores de ausencia dentro de cada partición.
+4. Comparar referencia por mediana, Ridge con escalado y gradient boosting de histogramas. Los dos modelos entrenan sobre `log1p(value_eur)` y devuelven predicciones en EUR con `expm1`.
+5. Seleccionar por MAE en EUR mediante cinco particiones del entrenamiento. Evaluar una vez el modelo seleccionado y la referencia en prueba.
+6. Describir errores por rango de valor e importancia por permutación (cinco repeticiones) como diagnóstico posterior; no reutilizar ese diagnóstico para seleccionar variables. Calcular un intervalo de MAE con 500 remuestreos de los errores de prueba.
 
-Son salidas del original, no métricas recalculadas durante esta publicación. No deben presentarse como precisión de predicción del valor de mercado.
+## Datos y procedencia
 
-### Revisión técnica
+[FIFA 22 Complete Player Dataset, publicado por Stefano Leone en Kaggle](https://www.kaggle.com/datasets/stefanoleone992/fifa-22-complete-player-dataset). Descarga `players_22.csv` y colócalo en `data/`. Se usa exclusivamente el archivo de jugadores de FIFA 22; no se mezclan otras ediciones.
 
-- La imputación se ajusta antes de separar entrenamiento y prueba, introduciendo fuga de información.
-- Se ejecuta RFECV, pero el modelo final vuelve a usar todas las variables especificadas, sin aplicar su máscara de selección.
-- `value_eur` se divide entre un millón en el análisis gráfico. Algunos rótulos y comentarios posteriores siguen hablando de euros o miles; requieren unificar las unidades.
-- Hay correlaciones sobre tablas con texto y uso de `sns.distplot`, una API obsoleta: la compatibilidad depende de las versiones de las librerías.
-- Algunas conclusiones narrativas requieren contraste con las gráficas y escalas, por ejemplo la referencia a miles de millones.
+Los resultados publicados se ejecutaron con copias públicas descargadas de las fuentes indicadas. No se ha verificado identidad byte a byte con los archivos del Drive del autor. Las huellas SHA-256 en [data/README.md](data/README.md) y `reports/metrics.json` identifican las entradas exactas. Los datasets se excluyen de Git; consulta las condiciones de cada fuente antes de reutilizarlos o redistribuirlos.
 
-### Próximo paso recomendado
+| Campo | Uso |
+|---|---|
+| `value_eur` | Objetivo, valoración del videojuego en EUR |
+| `sofifa_id` | Control de unicidad; excluido del modelo |
+| `age`, `height_cm`, `weight_kg` | Atributos físicos y edad |
+| `overall`, `potential`, `international_reputation` | Valoraciones generales del juego |
+| `pace`, `shooting`, `passing`, `dribbling`, `defending`, `physic` | Habilidades de campo; permiten nulos que se imputan en entrenamiento |
+| `wage_eur`, `release_clause_eur` | Excluidos; pueden actuar como aproximaciones del objetivo |
 
-Definir expresamente si el objetivo será salario o valoración. Separar los datos antes de ajustar transformaciones, colocar la imputación y el modelo dentro de un pipeline y comparar contra una predicción base. Si se mantiene RFECV, realizar la selección dentro de las particiones de entrenamiento y aplicarla al modelo final.
+## Reproducir el proyecto
 
-## Estado de esta publicación
+```powershell
+git clone https://github.com/hectortorres26/fifa22-analisis-jugadores.git
+cd fifa22-analisis-jugadores
+python -m venv .venv
+.\.venv\Scripts\python.exe -m pip install -r requirements.txt
+# Coloca los archivos descritos en «Datos y procedencia» dentro de data/.
+.\.venv\Scripts\python.exe -m unittest discover -s tests -v
+.\.venv\Scripts\python.exe -m src.analysis
+.\.venv\Scripts\python.exe scripts/execute_notebook.py
+```
 
-Se conserva el cuaderno original, incluidas sus salidas históricas. La revisión del 9 de noviembre de 2026 fue estática: lectura del código, salidas y estructura. No se ejecutó el análisis con los datasets ni se corrigió silenciosamente el trabajo original. Los problemas anteriores deben resolverse antes de considerar reproducibles los resultados.
+En macOS/Linux utiliza `.venv/bin/python` en lugar de `.\.venv\Scripts\python.exe`.
+La ejecución validada utiliza Python 3.11.9; las versiones están fijadas en `requirements.txt`.
+`python -m src.analysis --help` permite cambiar rutas de entrada y salida.
+El último comando ejecuta el cuaderno en un kernel nuevo y guarda sus salidas; no requiere instalar la interfaz de Jupyter.
+Para explorarlo interactivamente, abre el archivo `.ipynb` en VS Code con soporte de Jupyter y selecciona el entorno `.venv`.
 
-## Cómo explorar el proyecto
 
-1. Abra el enlace de Colab o el archivo `.ipynb` en GitHub para consultar el trabajo.
-2. Para trabajar localmente, cree un entorno virtual con `python -m venv .venv` y actívelo.
-3. Instale las dependencias con `python -m pip install -r requirements.txt`.
-4. Obtenga los datos desde su fuente autorizada. Ajuste las rutas `/content/drive/MyDrive/DATA_PRACTICA/` al directorio donde los haya guardado.
-5. En un entorno local, omita las celdas de montaje de Google Drive, si las hay.
-6. Resuelva los puntos de la revisión técnica y reinicie el kernel antes de ejecutar todas las celdas en orden.
+## Estructura
 
-`requirements.txt` enumera las librerías utilizadas; las versiones del entorno original no están registradas y no se ha validado una combinación exacta de versiones. Los datasets no se incluyen en este repositorio.
+| Ruta | Contenido |
+|---|---|
+| `analisis_jugadores_fifa22.ipynb` | Problema, metodología, ejecución y conclusiones |
+| `src/analysis.py` | Validación, análisis y generación de resultados |
+| `src/common.py` | Estilo visual, serialización y trazabilidad |
+| `tests/test_analysis.py` | Regresiones de los fallos técnicos corregidos |
+| `data/README.md` | Entradas requeridas y huellas SHA-256 |
+| `reports/` | Métricas JSON, tablas agregadas CSV y figuras PNG |
+| `scripts/execute_notebook.py` | Ejecución reproducible con kernel limpio |
+| `DESCRIPCION_PORTAFOLIO.md` | Texto profesional listo para el portafolio |
 
-## Autoría y procedencia
+## Alcance y limitaciones
 
-Publicado a partir del cuaderno enlazado en el portafolio del autor. Las fuentes y licencias de los datos son independientes de la autoría del análisis. Esta publicación no añade una licencia de redistribución al código ni a los datasets.
+La validación aleatoria dentro de una misma edición no prueba generalización temporal a otras ediciones ni al mercado real. Las valoraciones pueden derivarse de reglas internas asociadas a los propios atributos, lo que facilita predicciones altas. Las seis habilidades de campo tienen 2.124 valores ausentes cada una en las filas retenidas; la imputación con indicadores no sustituye un estudio específico de porteros. La importancia por permutación depende de correlaciones entre atributos y no representa causalidad. El intervalo bootstrap mantiene fijo el modelo y no incorpora incertidumbre del entrenamiento. El modelo se entrena con pérdida sobre el objetivo logarítmico, aunque se selecciona y evalúa por error en EUR.
+
+## Historial y correcciones
+
+El [archivo de la versión inicial](https://github.com/hectortorres26/fifa22-analisis-jugadores/blob/420ad20f5aabeab2901a1270194053a5af660570/analisis_jugadores_fifa22.ipynb) permanece en el historial.
+Los cambios se registran en commits separados para código, cuaderno/resultados y documentación, sin reescribir la versión inicial.
+Consulta [CHANGELOG.md](CHANGELOG.md) para relacionar los problemas originales con las correcciones.
+
+Referencia metodológica: [prevención de fuga de información en scikit-learn](https://scikit-learn.org/stable/common_pitfalls.html).
