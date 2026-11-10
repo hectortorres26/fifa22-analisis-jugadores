@@ -1,0 +1,84 @@
+{
+  "target": "value_eur",
+  "unidad": "EUR de valoración en FIFA 22",
+  "features": [
+    "age",
+    "height_cm",
+    "weight_kg",
+    "overall",
+    "potential",
+    "international_reputation",
+    "pace",
+    "shooting",
+    "passing",
+    "dribbling",
+    "defending",
+    "physic"
+  ],
+  "seed": 42,
+  "n_jugadores": 19165,
+  "n_train": 15332,
+  "n_test": 3833,
+  "calidad": {
+    "filas_originales": 19239,
+    "objetivos_excluidos": 74,
+    "nulos_features": {
+      "age": 0,
+      "height_cm": 0,
+      "weight_kg": 0,
+      "overall": 0,
+      "potential": 0,
+      "international_reputation": 0,
+      "pace": 2124,
+      "shooting": 2124,
+      "passing": 2124,
+      "dribbling": 2124,
+      "defending": 2124,
+      "physic": 2124
+    }
+  },
+  "cv": [
+    {
+      "modelo": "base_mediana",
+      "mae_cv_eur": 2360054.2126259995,
+      "desviacion_cv_eur": 151165.90548668517
+    },
+    {
+      "modelo": "ridge_log",
+      "mae_cv_eur": 587104.7148341218,
+      "desviacion_cv_eur": 49076.66275483826
+    },
+    {
+      "modelo": "gradient_boosting_log",
+      "mae_cv_eur": 148459.55493209214,
+      "desviacion_cv_eur": 23815.579959726103
+    }
+  ],
+  "modelo_seleccionado": "gradient_boosting_log",
+  "test": {
+    "mae_eur": 152335.6062537606,
+    "rmse_eur": 1259772.0480834641,
+    "r2": 0.9746636077411338
+  },
+  "baseline_test": {
+    "mae_eur": 2337478.476389251,
+    "rmse_eur": 8131753.6096988,
+    "r2": -0.05567262662496075
+  },
+  "reduccion_mae_vs_base": 0.9348290870728887,
+  "mae_ic95_bootstrap_eur": [
+    120983.11567280408,
+    194366.16628205235
+  ],
+  "fuente": {
+    "archivo": "players_22.csv",
+    "sha256": "b82a9a932ef74729d05e95b6f72334e664711bf6326132d8c38f5912cfc41c3f",
+    "python": "3.11.9",
+    "paquetes": {
+      "pandas": "3.0.6",
+      "numpy": "2.4.6",
+      "matplotlib": "3.11.2",
+      "scikit-learn": "1.9.1"
+    }
+  }
+}
