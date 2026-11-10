@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>FIFA 22: estimación de la valoración de jugadores</title>
+</head>
+<body>
+<h2>
+<strong>Objetivo del proyecto</strong>
+</h2>
+<p>Estimar la valoración de jugadores dentro de FIFA 22 a partir de doce atributos físicos y deportivos. Definí como objetivo <strong>value_eur</strong>, la valoración del videojuego en euros, diferenciándola del salario y de los precios reales de traspaso.</p>
+<p>
+<br>
+</p>
+<h2>
+<strong>Herramientas y metodología</strong>
+</h2>
+<p>Trabajé con Python, pandas, NumPy, scikit-learn y Matplotlib. De 19.239 registros, excluí 74 sin valoración válida y positiva. El análisis utiliza 19.165 jugadores, con 15.332 para entrenamiento y 3.833 reservados para prueba.</p>
+<p>
+<br>
+</p>
+<p>Comparé una referencia por mediana, Ridge y gradient boosting de histogramas mediante validación cruzada de cinco particiones. La imputación se ajusta dentro del entrenamiento; nunca se imputa el objetivo. Excluí identificadores, salario y cláusula de rescisión de los predictores. Los modelos Ridge y gradient boosting se entrenan con una transformación logarítmica y se evalúan en euros.</p>
+<p>
+<br>
+</p>
+<h2>
+<strong>Resultados principales</strong>
+</h2>
+<ul>
+<li>El modelo seleccionado obtuvo un <strong>error absoluto medio (MAE) de 152.336 EUR</strong> y <strong>R² de 0,975</strong> en prueba.</li>
+<li>La referencia por mediana alcanzó un MAE de 2.337.478 EUR: una <strong>reducción del error del 93,48 %</strong>.</li>
+<li>El RMSE fue de 1.259.772 EUR, señal de errores importantes en algunos jugadores de gran valor.</li>
+<li>Para los 100 jugadores de prueba valorados en más de 20 millones de EUR, el MAE fue de 2,93 millones.</li>
+<li>La valoración general, el potencial y la edad destacaron en el análisis de importancia por permutación.</li>
+</ul>
+<p>
+<br>
+</p>
+<h2>
+<strong>Interpretación y alcance</strong>
+</h2>
+<p>El modelo reproduce la estructura de valoración del juego. Un rendimiento alto puede deberse a que esa valoración está muy relacionada con los atributos internos de FIFA; no acredita capacidad para tasar fichajes reales.</p>
+<p>
+<br>
+</p>
+<p>La validación utiliza una sola edición y una separación aleatoria, por lo que no demuestra generalización a otras temporadas. Las habilidades ausentes se tratan con imputación e indicadores; los porteros requieren un análisis específico. La importancia de variables describe el comportamiento del modelo y no demuestra causalidad.</p>
+<p>
+<br>
+</p>
+<h2>
+<strong>Calidad y reproducibilidad</strong>
+</h2>
+<p>Corregí la discrepancia entre el objetivo anunciado y el salario usado originalmente, la imputación previa a la separación y la mezcla de unidades. El repositorio incluye tres pruebas técnicas, un cuaderno ejecutado, gráficos, errores por rango y dependencias fijadas. La validación usa una copia pública de Kaggle; no se ha comprobado su identidad byte a byte con los archivos originales de Drive.</p>
+<p>
+<br>
+</p>
+<h2>
+<strong>Código, resultados y documentación</strong>
+</h2>
+<ul>
+<li>
+<a href="https://github.com/hectortorres26/fifa22-analisis-jugadores">Repositorio completo en GitHub</a>
+</li>
+<li>
+<a href="https://github.com/hectortorres26/fifa22-analisis-jugadores/blob/main/analisis_jugadores_fifa22.ipynb">Cuaderno ejecutado con tablas y gráficos</a>
+</li>
+<li>
+<a href="https://github.com/hectortorres26/fifa22-analisis-jugadores/tree/main/reports">Informes y análisis de errores</a>
+</li>
+<li>
+<a href="https://www.kaggle.com/datasets/stefanoleone992/fifa-22-complete-player-dataset">Fuente de datos: FIFA 22 Complete Player Dataset</a>
+</li>
+</ul>
+<p>
+<br>
+</p>
+</body>
+</html>
